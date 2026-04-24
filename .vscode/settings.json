@@ -1,0 +1,9 @@
+{
+    "html.validate.styles": false,
+    "html.validate.scripts": false,
+    "css.validate": false,
+    "html.format.templating": true,
+    "files.associations": {
+        "*.html": "jinja-html"
+    }
+}
