@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case History - Lawyer - Client - Lawyer Matching</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .star-rating {
+            display: inline-flex;
+            font-size: 1.2rem;
+            color: #ffc107;
+            letter-spacing: 2px;
+        }
+
+        .star-rating .empty-star {
+            color: #e2e8f0;
+        }
+        .status-Won { background-color: #38a169; }
+        .status-Lost { background-color: #e53e3e; }
+        .status-Rejected { background-color: #a0aec0; }
+        .status-Pending { background-color: #f39c12; }
+        .status-Accepted { background-color: #38a169; }
+        
+        .card-Won { border-left: 5px solid #38a169; }
+        .card-Lost { border-left: 5px solid #e53e3e; }
+        .card-Rejected { border-left: 5px solid #a0aec0; }
+        .card-Pending { border-left: 5px solid #f39c12; }
+        .card-Accepted { border-left: 5px solid #38a169; }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo" style="display: flex; align-items: center; gap: 0.5rem;">
+                    {% if session.get('profile_picture') %}
+                    <img src="/static/uploads/{{ session.get('profile_picture') }}" alt="Profile"
+                        style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="color: var(--primary-color);">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% endif %}
+                    {{ session.get('lawyer_name', 'Lawyer Portal') }}
+                </a>
+                <div class="nav-links">
+                    <a href="/client-requests">Client Requests</a>
+                    <a href="/ongoing-cases">Ongoing Cases</a>
+                    <a href="/case-history" style="font-weight: 700; color: var(--secondary-color);">Case History</a>
+                    <a href="/lawyer-profile">My Profile</a>
+                </div>
+                <div class="nav-auth-buttons">
+                    <a href="/logout" class="btn btn-primary" style="background-color: #666;">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 2rem;">
+        <h1>Your Case History</h1>
+        <p style="color: #666; margin-bottom: 2rem;">A complete archive of your resolved and rejected client
+            appointments.</p>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+            {% if cases %}
+            {% for case in cases %}
+            <div class="card-{{ case.status }}"
+                style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); opacity: 0.95;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <h3 style="margin: 0;">{{ case.client_name }}</h3>
+                    <div style="text-align: right;">
+                        <div class="status-{{ case.status }}"
+                            style="display: inline-block; padding: 0.3rem 0.8rem; border-radius: 4px; font-weight: bold; color: white; margin-bottom: 0.3rem; font-size: 0.8rem;">
+                            {{ case.status }}
+                        </div>
+                        <div style="font-size: 0.75rem; color: #666;">Requested: {{ case.created_at.strftime('%Y-%m-%d')
+                            }}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 6px;">
+                    <p style="margin: 0 0 0.5rem 0;"><strong>Client Name:</strong> {{ case.client_name }}</p>
+                    <p style="margin: 0 0 0.5rem 0;"><strong>Contact Email:</strong> <a href="mailto:{{ case.client_email }}"
+                            style="color: var(--primary-color);">{{ case.client_email }}</a></p>
+                    <p style="margin: 0;"><strong>Phone Number:</strong> <a href="tel:{{ case.client_phone }}"
+                            style="color: var(--primary-color);">{{ case.client_phone or 'Not provided' }}</a></p>
+                </div>
+
+                {% if case.status in ['Won', 'Lost'] %}
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed #e2e8f0;">
+                    <span style="font-weight: 600; font-size: 0.9rem; color: #4a5568;">Client Review:</span>
+                    {% if case.client_rating %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                        <div class="star-rating">
+                            {% for i in range(5) %}
+                            <span
+                                class="{% if i < case.client_rating %}full-star{% else %}empty-star{% endif %}">★</span>
+                            {% endfor %}
+                        </div>
+                        <span style="color: #666; font-size: 0.9rem; font-weight: bold;">({{ case.client_rating
+                            }}/5)</span>
+                    </div>
+                    {% else %}
+                    <div style="margin-top: 0.5rem; color: #a0aec0; font-style: italic; font-size: 0.9rem;">
+                        The client has not rated your service yet.
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="text-align: center; padding: 3rem; background: white; border-radius: 8px; color: #666;">
+                <p style="font-size: 1.2rem;">Your archive is empty. Cases marked as Won, Lost, or Rejected will appear
+                    here.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

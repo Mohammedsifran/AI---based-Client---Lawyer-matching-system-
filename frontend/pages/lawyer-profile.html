@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lawyer Profile - Client - Lawyer Matching</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo" style="display: flex; align-items: center; gap: 0.5rem;">
+                    {% if session.get('profile_picture') %}
+                    <img src="/static/uploads/{{ session.get('profile_picture') }}" alt="Profile"
+                        style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="color: var(--primary-color);">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% endif %}
+                    {{ session.get('lawyer_name', 'Lawyer Portal') }}
+                </a>
+                <div class="nav-links">
+                    <a href="/client-requests">Client Requests</a>
+                    <a href="/ongoing-cases">Ongoing Cases</a>
+                    <a href="/case-history">Case History</a>
+                    <a href="/lawyer-profile" style="font-weight: 700; color: var(--secondary-color);">My
+                        Profile</a>
+                </div>
+                <div class="nav-auth-buttons">
+                    <a href="/logout" class="btn btn-primary" style="background-color: #666;">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="profile-container" style="max-width: 950px; border-top: 5px solid var(--secondary-color);">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="/update-lawyer-profile" method="POST" enctype="multipart/form-data">
+            <!-- Top Section: AI Stats Side-by-Side -->
+            <div style="display: flex; gap: 2.5rem; flex-wrap: wrap; margin-bottom: 2rem;">
+
+                <!-- Profile Picture Element -->
+                <div style="flex: 0 0 auto; text-align: center;">
+                    <div
+                        style="width: 150px; height: 150px; background-color: #eee; border-radius: 50%; margin: 0 auto 1rem auto; overflow: hidden; border: 3px solid var(--primary-color); display: flex; align-items: center; justify-content: center;">
+                        {% if lawyer.profile_picture %}
+                        <img id="profile-preview-img" src="/static/uploads/{{ lawyer.profile_picture }}" alt="Profile"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                        <span id="profile-preview-text" style="color: #999;">No Image</span>
+                        <img id="profile-preview-img" src="" alt="Profile"
+                            style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        {% endif %}
+                    </div>
+                    <label for="profile_picture" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Upload
+                        Photo (JPG, Max 2MB)</label>
+                    <input type="file" id="profile_picture" name="profile_picture" accept=".jpg,.jpeg"
+                        style="font-size: 0.85rem; max-width: 200px;">
+                    <div style="margin-top: 1rem;">
+                        <button type="submit" id="save-photo-btn" class="btn btn-primary"
+                            style="display: none; font-size: 0.9rem; padding: 0.5rem 1rem;">Save New Photo</button>
+                    </div>
+                </div>
+
+                <!-- AI Stats -->
+                <div style="flex: 1; background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                    <h3 style="margin-top: 0; color: var(--primary-color);">AI Extracted Stats</h3>
+                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 1.5rem;">These stats are automatically
+                        extracted from your bio to calculate your ranking.</p>
+
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Predicted Specialization:</strong><br>
+                        <span
+                            style="display: inline-block; padding: 4px 12px; background: var(--secondary-color); color: var(--primary-color); border-radius: 20px; font-weight: bold; margin-top: 5px; font-size: 1.05rem;">{{
+                            lawyer.specialization or 'Pending' }}</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div
+                            style="background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">{{
+                                lawyer.experience or 0 }}</div>
+                            <div style="font-size: 0.8rem; color: #666;">Years Exp.</div>
+                        </div>
+                        <div
+                            style="background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">{{
+                                lawyer.juniors_count or 0 }}</div>
+                            <div style="font-size: 0.8rem; color: #666;">Juniors</div>
+                        </div>
+                        <div
+                            style="background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">{{
+                                lawyer.cases_count or 0 }}</div>
+                            <div style="font-size: 0.8rem; color: #666;">Cases</div>
+                        </div>
+                        <div
+                            style="background: white; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+                            {% set urating = lawyer.user_rating|default(0)|float %}
+                            {% set u_stars = (urating / 2)|round(0, 'floor')|int %}
+                            <div style="font-size: 1.4rem; font-weight: bold; color: #f39c12; letter-spacing: 2px;">
+                                {% for i in range(5) %}
+                                {% if i < u_stars %}★{% else %}☆{% endif %} {% endfor %} </div>
+                                    <div style="font-size: 0.8rem; color: #666;">User Rating ({{ urating }}/10)</div>
+                            </div>
+                        </div>
+
+                        <div
+                            style="background: var(--primary-color); color: white; padding: 1.25rem; border-radius: 8px; text-align: center;">
+                            <h4 style="margin: 0; opacity: 0.9;">Total AI Ranking Score</h4>
+                            <div
+                                style="font-size: 2.5rem; font-weight: 800; color: var(--secondary-color); margin-bottom: -5px;">
+                                {{ lawyer.ranking_score or '0.0' }} <span style="font-size: 1rem; color: white;">/
+                                    10</span>
+                            </div>
+
+                            {% set rrating = lawyer.ranking_score|default(0)|float %}
+                            {% set r_stars = (rrating / 2)|round(0, 'floor')|int %}
+                            <div style="font-size: 1.8rem; color: var(--secondary-color); letter-spacing: 4px;">
+                                {% for i in range(5) %}
+                                {% if i < r_stars %}★{% else %}☆{% endif %} {% endfor %} </div>
+                            </div>
+                        </div> <!-- close right column -->
+                    </div> <!-- close flex container -->
+
+                    <!-- Bottom Section: Full Width Description -->
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label for="gender" style="font-weight: 600; color: var(--primary-color);">Gender</label>
+                            <select id="gender" name="gender" class="{% if lawyer.description %}textarea-readonly{% else %}textarea-editable{% endif %}" {% if lawyer.description %}disabled{% endif %} style="width: 100%; padding: 0.8rem; border-radius: 6px; font-family: var(--font-body); border: 1px solid #ccc; background-color: {% if lawyer.description %}#f5f5f5{% else %}#fff{% endif %};">
+                                <option value="Male" {% if lawyer.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if lawyer.gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if lawyer.gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label for="district" style="font-weight: 600; color: var(--primary-color);">District</label>
+                            <select id="district" name="district" class="{% if lawyer.description %}textarea-readonly{% else %}textarea-editable{% endif %}" {% if lawyer.description %}disabled{% endif %} style="width: 100%; padding: 0.8rem; border-radius: 6px; font-family: var(--font-body); border: 1px solid #ccc; background-color: {% if lawyer.description %}#f5f5f5{% else %}#fff{% endif %};">
+                                {% set districts = ['Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Moneragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'] %}
+                                {% for d in districts %}
+                                <option value="{{ d }}" {% if lawyer.district == d %}selected{% endif %}>{{ d }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 2rem;">
+                        <label for="description"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span
+                                style="font-weight: bold; font-size: 1.1rem; color: var(--primary-color);">Professional
+                                Experience & Detailed Bio</span>
+                            {% if lawyer.description %}
+                            <button type="button" id="edit-bio-btn" style="padding: 6px 14px; font-size: 0.9rem;"
+                                class="btn btn-outline" onclick="enableEdit()">Edit Bio</button>
+                            {% endif %}
+                        </label>
+                        <textarea id="description" name="description" rows="18" required
+                            class="{% if lawyer.description %}textarea-readonly{% else %}textarea-editable{% endif %}"
+                            style="resize: vertical; transition: all 0.3s ease; width: 100%; padding: 1.2rem; border-radius: 6px; font-family: var(--font-body); font-size: 1.05rem; line-height: 1.6;"
+                            {% if lawyer.description %}readonly{% endif %}
+                            placeholder="E.g., I have 15 years of experience in Corporate Law... I manage 5 juniors and have handled 100 cases...">{{ lawyer.description or '' }}</textarea>
+                    </div>
+
+                    <button type="submit" id="save-profile-btn" class="btn btn-secondary"
+                        style="color: var(--primary-color); width: 100%; padding: 1.2rem; font-size: 1.2rem; font-weight: 700; margin-bottom: 2rem;"
+                        {% if lawyer.description %}disabled{% endif %}>
+                        Save Profile & Run AI Extraction
+                    </button>
+
+                    <div
+                        style="background: #eef2f5; padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary-color); margin-bottom: 1rem;">
+                        <h4 style="margin-top: 0; color: var(--primary-color);">How the AI Works</h4>
+                        <p style="font-size: 0.9rem; color: #555; margin-bottom: 0;">Our system will carefully read your
+                            professional biography above to automatically ascertain your specialization and evaluate
+                            your ranking out of 10 based on extracting your specific <strong>Experience, Juniors, and
+                                Cases</strong>.</p>
+                    </div>
+        </form>
+    </div>
+
+    <script>
+        function enableEdit() {
+            const textarea = document.getElementById('description');
+            textarea.removeAttribute('readonly');
+            textarea.classList.remove('textarea-readonly');
+            textarea.classList.add('textarea-editable');
+            textarea.focus();
+
+            const genderSelect = document.getElementById('gender');
+            if(genderSelect) { 
+                genderSelect.removeAttribute('disabled'); 
+                genderSelect.classList.remove('textarea-readonly'); 
+                genderSelect.classList.add('textarea-editable'); 
+                genderSelect.style.backgroundColor = '#fff';
+            }
+            
+            const districtSelect = document.getElementById('district');
+            if(districtSelect) { 
+                districtSelect.removeAttribute('disabled'); 
+                districtSelect.classList.remove('textarea-readonly'); 
+                districtSelect.classList.add('textarea-editable');
+                districtSelect.style.backgroundColor = '#fff'; 
+            }
+
+            const btn = document.getElementById('edit-bio-btn');
+            if (btn) btn.style.display = 'none';
+
+            const saveBtn = document.getElementById('save-profile-btn');
+            if (saveBtn) {
+                saveBtn.removeAttribute('disabled');
+                saveBtn.style.opacity = '1';
+                saveBtn.style.cursor = 'pointer';
+            }
+        }
+
+        // Add initial styling to disabled button on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveBtn = document.getElementById('save-profile-btn');
+            if (saveBtn && saveBtn.hasAttribute('disabled')) {
+                saveBtn.style.opacity = '0.5';
+                saveBtn.style.cursor = 'not-allowed';
+            }
+
+            const photoInput = document.getElementById('profile_picture');
+            if (photoInput) {
+                photoInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const img = document.getElementById('profile-preview-img');
+                            const text = document.getElementById('profile-preview-text');
+
+                            if (text) text.style.display = 'none';
+                            if (img) {
+                                img.src = e.target.result;
+                                img.style.display = 'block';
+                            }
+
+                            const savePhotoBtn = document.getElementById('save-photo-btn');
+                            if (savePhotoBtn) savePhotoBtn.style.display = 'inline-block';
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

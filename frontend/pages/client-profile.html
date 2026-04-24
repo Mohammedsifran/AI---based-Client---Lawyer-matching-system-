@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Client - Lawyer Matching</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo" style="display: flex; align-items: center; gap: 0.5rem;">
+                    {% if session.get('profile_picture') %}
+                    <img src="/static/uploads/{{ session.get('profile_picture') }}" alt="Profile"
+                        style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="color: var(--primary-color);">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% endif %}
+                    {{ session.get('client_name', 'Client Portal') }}
+                </a>
+                <div class="nav-links">
+                    <a href="/search-lawyer">Find a Lawyer</a>
+                    <a href="/favorite-lawyers">Saved Lawyers</a>
+                </div>
+                <div class="nav-auth-buttons">
+                    <a href="/logout" class="btn btn-primary" style="background-color: #666;">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="profile-container">
+        <h2>My Profile</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="/update-client-profile" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Profile Picture</label>
+                <div
+                    style="width: 100px; height: 100px; background-color: #eee; border-radius: 50%; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--primary-color);">
+                    {% if client and client.profile_picture %}
+                    <img id="profile-preview-img" src="/static/uploads/{{ client.profile_picture }}" alt="Profile"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <span id="profile-preview-text" style="color: #999;">No Image</span>
+                    <img id="profile-preview-img" src="" alt="Profile"
+                        style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    {% endif %}
+                </div>
+                <input type="file" id="profile_picture_input" name="profile_picture" accept=".jpg,.jpeg"
+                    style="border: none; padding: 0;">
+            </div>
+            <div class="form-group">
+                <label for="fullname">Full Name</label>
+                <input type="text" id="fullname" value="{{ client.name if client else '' }}" readonly
+                    style="background-color: #f9f9f9;">
+            </div>
+
+            <div class="form-group">
+                <label for="email" style="display: flex; justify-content: space-between;">
+                    Email Address
+                    <button type="button" id="edit-profile-btn"
+                        style="padding: 4px 10px; font-size: 0.8rem; border-radius: 4px;" class="btn btn-outline"
+                        onclick="enableEdit()">Edit Details</button>
+                </label>
+                <input type="email" id="email" name="email" value="{{ client.email if client else '' }}" readonly
+                    style="background-color: #f9f9f9; transition: all 0.3s ease;">
+            </div>
+
+            <div class="form-group">
+                <label for="phone_number">Phone Number</label>
+                <input type="text" id="phone_number" name="phone_number"
+                    value="{{ client.phone_number if client and client.phone_number else '' }}" readonly
+                    style="background-color: #f9f9f9; transition: all 0.3s ease;" placeholder="e.g. +1 234 567 8900">
+            </div>
+
+            <button type="submit" id="save-profile-btn" class="btn btn-primary"
+                style="display: none; margin-top: 1rem;">Save Profile Changes</button>
+        </form>
+    </div>
+
+    <script>
+        function enableEdit() {
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone_number');
+
+            emailInput.removeAttribute('readonly');
+            emailInput.style.backgroundColor = '#fff';
+
+            phoneInput.removeAttribute('readonly');
+            phoneInput.style.backgroundColor = '#fff';
+
+            const editBtn = document.getElementById('edit-profile-btn');
+            if (editBtn) editBtn.style.display = 'none';
+
+            const saveBtn = document.getElementById('save-profile-btn');
+            if (saveBtn) saveBtn.style.display = 'inline-block';
+
+            emailInput.focus();
+        }
+        document.getElementById('profile_picture_input').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.getElementById('profile-preview-img');
+                    const text = document.getElementById('profile-preview-text');
+
+                    if (text) text.style.display = 'none';
+                    if (img) {
+                        img.src = e.target.result;
+                        img.style.display = 'block';
+                    }
+
+                    const saveBtn = document.getElementById('save-profile-btn');
+                    if (saveBtn) saveBtn.style.display = 'inline-block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+
+</html>

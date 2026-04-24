@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Client - Lawyer Matching</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header style="background-color: #2c3e50;">
+        <div class="container">
+            <nav>
+                <a href="/" class="logo" style="color: white;">Client - Lawyer Matching <span
+                        style="font-size: 0.8rem; opacity: 0.7;">ADMIN</span></a>
+                <div class="nav-links" style="color: white;">
+                    <a href="#" style="font-weight: 700;">Dashboard</a>
+                    <a href="#">Reports</a>
+                </div>
+                <div class="nav-auth-buttons">
+                    <a href="/logout" class="btn btn-outline" style="border-color: white; color: white;">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 2rem;">
+        <h1>Dashboard Overview</h1>
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+            <div
+                style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); text-align: center;">
+                <h3 style="color: #666; font-size: 1rem;">Total Lawyers</h3>
+                <p style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color);">{{ lawyer_count }}</p>
+            </div>
+            <div
+                style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); text-align: center;">
+                <h3 style="color: #666; font-size: 1rem;">Total Clients</h3>
+                <p style="font-size: 2.5rem; font-weight: 700; color: var(--primary-color);">{{ client_count }}</p>
+            </div>
+            <div
+                style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); text-align: center;">
+                <h3 style="color: #666; font-size: 1rem;">Pending Approvals</h3>
+                <p style="font-size: 2.5rem; font-weight: 700; color: var(--secondary-color);">{{ pending_lawyers|length
+                    }}</p>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        {% if category == 'success' %}
+        <div style="padding: 1rem; margin-bottom: 2rem; border-radius: 6px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+            {{ message }}
+        </div>
+        {% else %}
+        <div style="padding: 1rem; margin-bottom: 2rem; border-radius: 6px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <h2>Pending Lawyer Approvals</h2>
+        <div
+            style="background: white; border-radius: 8px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 3rem;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background-color: #f4f6f8;">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Lawyer Name</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Email</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Specialization</th>
+                        <th style="padding: 1rem; text-align: right; font-weight: 600;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if pending_lawyers %}
+                    {% for lawyer in pending_lawyers %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">{{ lawyer.name }}</td>
+                        <td style="padding: 1rem; color: #666;">{{ lawyer.email }}</td>
+                        <td style="padding: 1rem;">{{ lawyer.specialization }}</td>
+                        <td style="padding: 1rem; text-align: right;">
+                            <form action="/admin/approve-lawyer/{{ lawyer.id }}" method="POST" style="margin: 0;">
+                                <button type="submit" class="btn btn-secondary"
+                                    style="padding: 0.4rem 1rem; font-size: 0.9rem;">Approve</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="padding: 2rem; text-align: center; color: #888;">No pending lawyers to
+                            approve.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Manage Lawyers</h2>
+        <div
+            style="background: white; border-radius: 8px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 3rem;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background-color: #f4f6f8;">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; width: 100px;">Role</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Edit User Details (Name & Email &
+                            Specialization)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in all_lawyers %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">
+                            <span
+                                style="background: #e1ecf4; color: #2c5282; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">Lawyer</span>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <form action="/admin/update-user" method="POST"
+                                style="display: flex; gap: 0.5rem; align-items: center; margin: 0; flex-wrap: wrap;">
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                <input type="hidden" name="role" value="{{ user.role }}">
+                                <input type="text" name="new_name" value="{{ user.name }}" required
+                                    style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 200px;"
+                                    placeholder="Full Name">
+                                <input type="email" name="new_email" value="{{ user.email }}" required
+                                    style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 200px;"
+                                    placeholder="Email Address">
+                                <select name="new_specialization"
+                                    style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 150px;">
+                                    <option value="Corporate" {% if user.specialization=='Corporate' %}selected{% endif
+                                        %}>Corporate</option>
+                                    <option value="Civil" {% if user.specialization=='Civil' %}selected{% endif %}>Civil
+                                    </option>
+                                    <option value="Criminal" {% if user.specialization=='Criminal' %}selected{% endif
+                                        %}>Criminal</option>
+                                    <option value="Property" {% if user.specialization=='Property' %}selected{% endif
+                                        %}>Property</option>
+                                    <option value="Employment" {% if user.specialization=='Employment' %}selected{%
+                                        endif %}>Employment</option>
+                                    <option value="Others Lawyer" {% if user.specialization=='Others Lawyer'
+                                        %}selected{% endif %}>Others Lawyer</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary"
+                                    style="padding: 0.5rem 1rem; font-size: 0.85rem;">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2>Manage Clients</h2>
+        <div
+            style="background: white; border-radius: 8px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 4rem;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background-color: #f4f6f8;">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600; width: 100px;">Role</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Edit User Details (Name & Email)
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in all_clients %}
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 1rem;">
+                            <span
+                                style="background: #f0fff4; color: #276749; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">Client</span>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <form action="/admin/update-user" method="POST"
+                                style="display: flex; gap: 0.5rem; align-items: center; margin: 0; flex-wrap: wrap;">
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                <input type="hidden" name="role" value="{{ user.role }}">
+                                <input type="text" name="new_name" value="{{ user.name }}" required
+                                    style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 200px;"
+                                    placeholder="Full Name">
+                                <input type="email" name="new_email" value="{{ user.email }}" required
+                                    style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 200px;"
+                                    placeholder="Email Address">
+                                <button type="submit" class="btn btn-primary"
+                                    style="padding: 0.5rem 1rem; font-size: 0.85rem;">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

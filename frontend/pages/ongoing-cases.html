@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ongoing Cases - Client - Lawyer Matching</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .status-Won { background-color: #38a169; }
+        .status-Lost { background-color: #e53e3e; }
+        .status-Rejected { background-color: #a0aec0; }
+        .status-Pending { background-color: #f39c12; }
+        .status-Accepted { background-color: #38a169; }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo" style="display: flex; align-items: center; gap: 0.5rem;">
+                    {% if session.get('profile_picture') %}
+                    <img src="/static/uploads/{{ session.get('profile_picture') }}" alt="Profile"
+                        style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="color: var(--primary-color);">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% endif %}
+                    {{ session.get('lawyer_name', 'Lawyer Portal') }}
+                </a>
+                <div class="nav-links">
+                    <a href="/client-requests">Client Requests</a>
+                    <a href="/ongoing-cases" style="font-weight: 700; color: var(--secondary-color);">Ongoing Cases</a>
+                    <a href="/case-history">Case History</a>
+                    <a href="/lawyer-profile">My Profile</a>
+                </div>
+                <div class="nav-auth-buttons">
+                    <a href="/logout" class="btn btn-primary" style="background-color: #666;">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 2rem;">
+        <h1>Your Ongoing Cases</h1>
+        <p style="color: #666; margin-bottom: 2rem;">Manage your actively accepted client appointments.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div style="padding: 1rem; margin-bottom: 2rem; border-radius: 6px; 
+                  {% if category == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                  {% else %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+            {% if cases %}
+            {% for case in cases %}
+            <div
+                style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); border-left: 5px solid #38a169;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <h3>{{ case.client_name }} <span style="font-size: 0.9rem; color: #666; font-weight: 400;">({{
+                            case.status }})</span></h3>
+                    <span style="font-size: 0.8rem; color: #666;">Accepted Since: {{ case.created_at.strftime('%Y-%m-%d
+                        %H:%M') }}</span>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 1rem; background: #eef2f5; border-radius: 6px;">
+                    <p style="margin: 0 0 0.5rem 0;"><strong>Client Name:</strong> {{ case.client_name }}</p>
+                    <p style="margin: 0 0 0.5rem 0;"><strong>Contact Email:</strong> <a href="mailto:{{ case.client_email }}"
+                            style="color: var(--primary-color);">{{ case.client_email }}</a></p>
+                    <p style="margin: 0;"><strong>Phone Number:</strong> <a href="tel:{{ case.client_phone }}"
+                            style="color: var(--primary-color);">{{ case.client_phone or 'Not provided' }}</a></p>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    {% if case.status == 'In Progress' %}
+                    <form action="/update-case-status/{{ case.id }}" method="POST"
+                        style="display: flex; gap: 1rem; align-items: center;">
+                        <select name="status" class="form-control" style="width: auto; padding: 0.5rem;" required>
+                            <option value="" disabled selected>Update Status...</option>
+                            <option value="Won">Case Won</option>
+                            <option value="Lost">Case Lost</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary"
+                            style="background-color: #38a169; padding: 0.5rem 1rem;">Confirm</button>
+                    </form>
+                    {% else %}
+                    <div class="status-{{ case.status }}"
+                        style="display: inline-block; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold; color: white;">
+                        Case {{ case.status }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="text-align: center; padding: 3rem; background: white; border-radius: 8px; color: #666;">
+                <p style="font-size: 1.2rem;">You do not have any ongoing cases yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>
